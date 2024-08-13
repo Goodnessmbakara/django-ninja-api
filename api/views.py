@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
+from django.test import RequestFactory
 from ninja import Router
 from ninja.security import django_auth
 from rest_framework_simplejwt.views import (TokenObtainPairView,
@@ -18,13 +19,28 @@ blog_router = Router()
 
 auth_router = Router()
 
+factory = RequestFactory()
+
 @auth_router.post("/token/")
 def token_obtain_pair(request):
-    return TokenObtainPairView.as_view()(request._request)
+    # Create a Django request object
+    django_request = factory.post(
+        request.path,
+        data=request.body,
+        content_type=request.headers.get('Content-Type', 'application/json'),
+    )
+    response = TokenObtainPairView.as_view()(django_request)
+    return response
 
 @auth_router.post("/token/refresh/")
 def token_refresh(request):
-    return TokenRefreshView.as_view()(request._request)
+    django_request = factory.post(
+        request.path,
+        data=request.body,
+        content_type=request.headers.get('Content-Type', 'application/json'),
+    )
+    response = TokenRefreshView.as_view()(django_request)
+    return response
 
 @blog_router.post("/", response=BlogPostOutSchema, auth=django_auth)
 def create_post(request, data: BlogPostSchema):

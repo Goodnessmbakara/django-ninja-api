@@ -8,5 +8,5 @@ api.add_router("/posts/", blog_router)
 api.add_router("/auth/", auth_router)
 
 urlpatterns = [
-    path("api/v1/", api.urls),
+    path("api/", api.urls),
 ]

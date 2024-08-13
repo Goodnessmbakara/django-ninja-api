@@ -44,7 +44,7 @@ Follow these steps to set up and run the project on your local machine.
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/django-ninja-api.git
+git clone https://github.com/Goodnessmbakara/django-ninja-api.git
 cd django-ninja-api
 ```
 
@@ -53,7 +53,7 @@ cd django-ninja-api
 Create and activate a virtual environment to isolate project dependencies.
 
 ```bash
-python3 -m venv venv
+python3 -m venv .venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
@@ -84,6 +84,7 @@ STATIC_ROOT=/path/to/staticfiles  # Update for production use
 Run database migrations to set up your database.
 
 ```bash
+python manage.py makemigrations
 python manage.py migrate
 ```
 
@@ -179,7 +180,7 @@ python manage.py collectstatic
 
 ### 3. Use a WSGI Server
 
-In production, use a WSGI server like Gunicorn to serve your application:
+In production, use a WSGI server like Gunicorn to serve the application:
 
 ```bash
 gunicorn django_ninja_api.wsgi:application --bind 0.0.0.0:8000
