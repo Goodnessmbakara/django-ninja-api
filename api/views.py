@@ -1,75 +1,67 @@
+from ninja import NinjaAPI, Router
 from typing import List
-
-from django.contrib.auth import get_user_model
-from django.core.paginator import Paginator
-from django.db.models import Q
 from django.shortcuts import get_object_or_404
-from django.test import RequestFactory
-from ninja import Router
-from ninja.security import django_auth
-from rest_framework_simplejwt.views import (TokenObtainPairView,
-                                            TokenRefreshView)
+from django.conf import settings
+from .models import Post
+from .schemas import PostCreate, PostUpdate, PostOut
 
-from .models import BlogPost
-from .schemas import BlogPostOutSchema, BlogPostSchema
+# # Define JWT authentication using Django-Ninja
+# class JWTAuth(JWTBearer):
+#     def authenticate(self, request):
+#         user = super().authenticate(request)
+#         return user
 
-User = get_user_model()
+api = NinjaAPI(title="Blog API", version="1.0.0", auth=JWTAuth(), csrf=False)
 
+# Define the blog router
 blog_router = Router()
 
-auth_router = Router()
-
-factory = RequestFactory()
-
-@auth_router.post("/token/")
-def token_obtain_pair(request):
-    # Create a Django request object
-    django_request = factory.post(
-        request.path,
-        data=request.body,
-        content_type=request.headers.get('Content-Type', 'application/json'),
+@blog_router.post("/", response=PostOut)
+def create_post(request, data: PostCreate):
+    user = request.user
+    post = Post.objects.create(
+        title=data.title,
+        content=data.content,
+        author=user
     )
-    response = TokenObtainPairView.as_view()(django_request)
-    return response
-
-@auth_router.post("/token/refresh/")
-def token_refresh(request):
-    django_request = factory.post(
-        request.path,
-        data=request.body,
-        content_type=request.headers.get('Content-Type', 'application/json'),
-    )
-    response = TokenRefreshView.as_view()(django_request)
-    return response
-
-@blog_router.post("/", response=BlogPostOutSchema, auth=django_auth)
-def create_post(request, data: BlogPostSchema):
-    post = BlogPost.objects.create(**data.dict(), author=request.user)
     return post
 
-@blog_router.get("/{post_id}", response=BlogPostOutSchema)
+@blog_router.get("/", response=List[PostOut])
+def list_posts(request):
+    return Post.objects.all()
+
+@blog_router.get("/{post_id}", response=PostOut)
 def get_post(request, post_id: int):
-    post = get_object_or_404(BlogPost, id=post_id)
+    post = get_object_or_404(Post, id=post_id)
     return post
 
-@blog_router.put("/{post_id}", response=BlogPostOutSchema, auth=django_auth)
-def update_post(request, post_id: int, data: BlogPostSchema):
-    post = get_object_or_404(BlogPost, id=post_id, author=request.user)
-    for attr, value in data.dict().items():
-        setattr(post, attr, value)
+@blog_router.put("/{post_id}", response=PostOut)
+def update_post(request, post_id: int, data: PostUpdate):
+    post = get_object_or_404(Post, id=post_id)
+    if data.title is not None:
+        post.title = data.title
+    if data.content is not None:
+        post.content = data.content
     post.save()
     return post
 
-@blog_router.delete("/{post_id}", auth=django_auth)
+@blog_router.delete("/{post_id}", response=None)
 def delete_post(request, post_id: int):
-    post = get_object_or_404(BlogPost, id=post_id, author=request.user)
+    post = get_object_or_404(Post, id=post_id)
     post.delete()
-    return {"success": True}
+    return None
 
-@blog_router.get("/", response=List[BlogPostOutSchema])
-def list_posts(request, title: str = None, page: int = 1, per_page: int = 10):
-    posts = BlogPost.objects.all()
-    if title:
-        posts = posts.filter(Q(title__icontains=title))
-    paginator = Paginator(posts, per_page)
-    return paginator.page(page).object_list
+# Define auth router for authentication endpoints
+auth_router = Router()
+
+@auth_router.post("/token/")
+def token_obtain_pair(request):
+    return api.auth.get_token_pair(request)
+
+@auth_router.post("/token/refresh/")
+def token_refresh(request):
+    return api.auth.refresh_token(request)
+
+# Add routers to the API
+api.add_router("/posts/", blog_router)
+api.add_router("/auth/", auth_router)

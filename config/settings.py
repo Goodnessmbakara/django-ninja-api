@@ -51,8 +51,7 @@ USER_DEFINED_APPS = [
 ]
 
 EXTERNAL_APPS = [
-    "rest_framework",
-    
+  
 ]
 
 INSTALLED_APPS = DJANGO_APPS + USER_DEFINED_APPS + EXTERNAL_APPS
@@ -139,10 +138,11 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
+NINJA_JWT = {
+    'SIGNING_KEY': 'your-secret-key',  # Change to a strong secret key
+    'ALGORITHM': 'HS256',
+    'ACCESS_TOKEN_LIFETIME': '15m',  # Example: 15 minutes
+    'REFRESH_TOKEN_LIFETIME': '7d',  # Example: 7 days
 }
 # JWT Settings
 JWT_AUTH = {
@@ -153,3 +153,8 @@ STATIC_URL = "/static/"
 STATIC_ROOT = os.getenv("STATIC_ROOT", BASE_DIR / "staticfiles")
 # WhiteNoise configuration to compress and cache static files
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://127.0.0.1:9000'
+    'http://localhost:9000'
+]
