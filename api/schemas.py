@@ -20,3 +20,6 @@ class PostOut(BaseModel):
 
     class Config:
         orm_mode = True
+
+class NotFoundSchema(BaseModel):
+    message: str
