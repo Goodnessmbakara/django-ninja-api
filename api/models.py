@@ -1,13 +1,12 @@
 from django.db import models
-from django.conf import settings
+from django.auth.model  import AbstractUser
 
-class BlogPost(models.Model):
-    title = models.CharField(max_length=255)
-    content = models.CharField(max_length=400)
-    # author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    author = models.CharField(max_length=400)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
+class CustomUser(AbstractUser):
+    email = models.EmailField(unique=True)
+    
+    USERNAME_FIELD =  'email'
+    REQUIRED_FIELDS = ['username',]
+    
     def __str__(self):
-        return self.title
+        return self.email

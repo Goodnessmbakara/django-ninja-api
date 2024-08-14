@@ -52,7 +52,7 @@ USER_DEFINED_APPS = [
 ]
 
 EXTERNAL_APPS = [
-  
+  "ninja"
 ]
 
 INSTALLED_APPS = DJANGO_APPS + USER_DEFINED_APPS + EXTERNAL_APPS
@@ -166,3 +166,5 @@ CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:9000'
     'http://localhost:9000'
 ]
+
+AUTH_USER_MODEL = 'api.CustomUser'

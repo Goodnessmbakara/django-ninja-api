@@ -1,7 +1,7 @@
 from ninja import Schema, ModelSchema
 from inventory.models import Product
 
-class CategoryIn(Schema):
+class CategorySchema(Schema):
     name: str
     slug: str
 
