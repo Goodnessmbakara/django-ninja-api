@@ -1,10 +1,14 @@
 from typing import List, Optional
 
+from django.contrib.auth import authenticate, login, logout
+from django.middleware.csrf import get_token
 from django.shortcuts import get_object_or_404
 from ninja import NinjaAPI
+from ninja.security import django_auth
 
-from inventory.models import Category, Product
+from api import schemas
 from api.schemas import CategorySchema, ProductSchema
+from inventory.models import Category, Product
 
 api = NinjaAPI()
 
@@ -28,7 +32,6 @@ def get_category_list(request):
 @api.get("/inventory/product/category/{category_slug}", response=List[ProductSchema])
 def get_product_by_category(request, category_slug: str):
     qs = Product.objects.filter(category__slug=category_slug)
-    #qs = Product.objects.all()
     return qs
 
 @api.put("/inventory/category/{category_id}", response=List[CategorySchema])
@@ -45,3 +48,44 @@ def delete_category(request, cat_id: int, payload: CategorySchema):
     category = get_object_or_404(Category, id=cat_id)
     category.delete()
     return {"Success":True}
+
+@api.get("/set-csrf-token")
+def get_csrf_token(request):
+    return {"csrftoken": get_token(request)}
+
+
+@api.post("/login")
+def login_view(request, payload: schemas.SignInSchema):
+    user = authenticate(request, username=payload.email, password=payload.password)
+    if user is not None:
+        login(request, user)
+        return {"success": True}
+    return {"success": False, "message": "Invalid credentials"}
+
+
+@api.post("/logout", auth=django_auth)
+def logout_view(request):
+    logout(request)
+    return {"message": "Logged out"}
+
+
+@api.get("/user", auth=django_auth)
+def user(request):
+    secret_fact = (
+        "The moment one gives close attention to any thing, even a blade of grass",
+        "it becomes a mysterious, awesome, indescribably magnificent world in itself."
+    )
+    return {
+        "username": request.user.username,
+        "email": request.user.email,
+        "secret_fact": secret_fact
+    }
+
+
+@api.post("/register")
+def register(request, payload: schemas.SignInSchema):
+    try:
+        User.objects.create_user(username=payload.email, email=payload.email, password=payload.password)
+        return {"success": "User registered successfully"}
+    except Exception as e:
+        return {"error": str(e)}

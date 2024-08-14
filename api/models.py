@@ -1,6 +1,5 @@
 from django.db import models
-from django.auth.model  import AbstractUser
-
+from django.contrib.auth.models import AbstractUser
 
 class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
@@ -10,3 +9,4 @@ class CustomUser(AbstractUser):
     
     def __str__(self):
         return self.email
+

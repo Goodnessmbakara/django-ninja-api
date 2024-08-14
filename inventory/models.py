@@ -44,13 +44,13 @@ class Product(models.Model):
         max_length=255
     )
     description = models.TextField(
-        blank = True
+        blank = True,
+        null = True
     )
     category = models.ForeignKey(
         Category,
         related_name = "product",
-        default = 1,
-        on_delete=models.SET_DEFAULT,
+        on_delete=models.SET_NULL,
         null = True,
         blank = True
     )

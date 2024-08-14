@@ -48,16 +48,18 @@ DJANGO_APPS = [
 
 USER_DEFINED_APPS = [
     "api",
-    "inventory" 
+    "inventory" ,
 ]
 
 EXTERNAL_APPS = [
-  "ninja"
+  "ninja",
+  'corsheaders',    
 ]
 
 INSTALLED_APPS = DJANGO_APPS + USER_DEFINED_APPS + EXTERNAL_APPS
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -166,5 +168,8 @@ CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:9000'
     'http://localhost:9000'
 ]
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = ["http://localhost:5173"]  # React app URL
+CSRF_TRUSTED_ORIGINS = ['http://localhost:5173']
 
 AUTH_USER_MODEL = 'api.CustomUser'
