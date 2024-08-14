@@ -12,12 +12,12 @@ from inventory.models import Category, Product
 
 api = NinjaAPI()
 
-@api.post("/inventory/category")
+@api.post("/inventory/category", auth=django_auth)
 def post_category(request, data: CategorySchema):
     qs = Category.objects.create(**data.dict())
     return {"name": qs.name}
 
-@api.post("/inventory/product")
+@api.post("/inventory/product", auth=django_auth)
 def post_product(request, data: ProductSchema):
     category_id = data.pop("category_id")
     category = Category.objects.get(pk=category_id)
@@ -29,12 +29,12 @@ def get_category_list(request):
     qs = Category.objects.all()
     return qs
  
-@api.get("/inventory/product/category/{category_slug}", response=List[ProductSchema])
+@api.get("/inventory/product/category/{category_slug}", response=List[ProductSchema],auth=django_auth)
 def get_product_by_category(request, category_slug: str):
     qs = Product.objects.filter(category__slug=category_slug)
     return qs
 
-@api.put("/inventory/category/{category_id}", response=List[CategorySchema])
+@api.put("/inventory/category/{category_id}", response=List[CategorySchema],auth=django_auth)
 def update_category(request, category_id: int, payload: CategorySchema):
     category = get_object_or_404(Category, id=category_id)
     for attr,value in payload.dict().items():
@@ -43,7 +43,7 @@ def update_category(request, category_id: int, payload: CategorySchema):
     category.save()
     return {"Success":True}
 
-@api.delete("/inventory/category/{cat_id}")
+@api.delete("/inventory/category/{cat_id}",auth=django_auth)
 def delete_category(request, cat_id: int, payload: CategorySchema):
     category = get_object_or_404(Category, id=cat_id)
     category.delete()
