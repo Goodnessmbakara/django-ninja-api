@@ -8,10 +8,10 @@ class CategorySchema(Schema):
     name: str
     slug: str
 
-class ProductSchema(ModelSchema):
-    class Config:
-        model = Product
-        model_fields  = ["name", "web_id", "category"]
+class ProductSchema(BaseModel):
+    name: str
+    web_id: str
+    category: int
 
 
 class SignInSchema(BaseModel):

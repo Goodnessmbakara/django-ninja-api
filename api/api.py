@@ -1,11 +1,11 @@
 from typing import List, Optional
 
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, get_user_model, login, logout
+from django.forms.models import model_to_dict
 from django.middleware.csrf import get_token
 from django.shortcuts import get_object_or_404
-from django.contrib.auth import get_user_model
 from ninja import NinjaAPI
-from ninja.security import django_auth, HttpBasicAuth
+from ninja.security import HttpBasicAuth, django_auth
 
 from api import schemas
 from api.schemas import CategorySchema, ProductSchema
@@ -25,12 +25,15 @@ def post_category(request, data: CategorySchema):
     qs = Category.objects.create(**data.dict())
     return {"name": qs.name}
 
-@api.post("/inventory/product",auth=BasicAuth())
+@api.post("/inventory/product", auth=BasicAuth())
 def post_product(request, data: ProductSchema):
-    category_id = data.pop("category_id")
-    category = Category.objects.get(pk=category_id)
-    qs = Product.objects.create(**data.dict(), category=category)
-    return {"name": qs.name}
+    data = data.dict()
+    category_id = data.pop("category")
+    category = get_object_or_404(Category, pk=category_id)
+    product = Product(**data)
+    product.category = category
+    product.save()
+    return {"name": product.name, "category": product.category.name}
 
 @api.get("/inventory/category/all", response=List[CategorySchema])
 def get_category_list(request):
