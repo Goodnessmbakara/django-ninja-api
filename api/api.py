@@ -5,7 +5,7 @@ from django.middleware.csrf import get_token
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from ninja import NinjaAPI
-from ninja.security import django_auth
+from ninja.security import django_auth, HttpBasicAuth
 
 from api import schemas
 from api.schemas import CategorySchema, ProductSchema
@@ -15,12 +15,17 @@ User = get_user_model()
 
 api = NinjaAPI()
 
-@api.post("/inventory/category", auth=django_auth)
+class BasicAuth(HttpBasicAuth):
+    def authenticate(self, request, username, password):
+        user = authenticate(request, username=username, password=password)
+        return user
+    
+@api.post("/inventory/category", auth=BasicAuth())
 def post_category(request, data: CategorySchema):
     qs = Category.objects.create(**data.dict())
     return {"name": qs.name}
 
-@api.post("/inventory/product", auth=django_auth)
+@api.post("/inventory/product",auth=BasicAuth())
 def post_product(request, data: ProductSchema):
     category_id = data.pop("category_id")
     category = Category.objects.get(pk=category_id)
@@ -32,12 +37,12 @@ def get_category_list(request):
     qs = Category.objects.all()
     return qs
  
-@api.get("/inventory/product/category/{category_slug}", response=List[ProductSchema],auth=django_auth)
+@api.get("/inventory/product/category/{category_slug}", response=List[ProductSchema],auth=BasicAuth())
 def get_product_by_category(request, category_slug: str):
     qs = Product.objects.filter(category__slug=category_slug)
     return qs
 
-@api.put("/inventory/category/{category_id}", response=List[CategorySchema],auth=django_auth)
+@api.put("/inventory/category/{category_id}", response=List[CategorySchema],auth=BasicAuth())
 def update_category(request, category_id: int, payload: CategorySchema):
     category = get_object_or_404(Category, id=category_id)
     for attr,value in payload.dict().items():
@@ -46,7 +51,7 @@ def update_category(request, category_id: int, payload: CategorySchema):
     category.save()
     return {"Success":True}
 
-@api.delete("/inventory/category/{cat_id}",auth=django_auth)
+@api.delete("/inventory/category/{cat_id}",auth=BasicAuth())
 def delete_category(request, cat_id: int, payload: CategorySchema):
     category = get_object_or_404(Category, id=cat_id)
     category.delete()
@@ -62,17 +67,17 @@ def login_view(request, payload: schemas.SignInSchema):
     user = authenticate(request, username=payload.email, password=payload.password)
     if user is not None:
         login(request, user)
-        return {"success": True}
+        return {"message":"success","session_id":request.session.session_key}
     return {"success": False, "message": "Invalid credentials"}
 
 
-@api.post("/logout", auth=django_auth)
+@api.post("/logout", auth=BasicAuth())
 def logout_view(request):
     logout(request)
     return {"message": "Logged out"}
 
 
-@api.get("/user", auth=django_auth)
+@api.get("/user", auth=BasicAuth())
 def user(request):
     secret_fact = (
         "The moment one gives close attention to any thing, even a blade of grass",
