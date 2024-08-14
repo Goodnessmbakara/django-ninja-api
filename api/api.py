@@ -3,12 +3,15 @@ from typing import List, Optional
 from django.contrib.auth import authenticate, login, logout
 from django.middleware.csrf import get_token
 from django.shortcuts import get_object_or_404
+from django.contrib.auth import get_user_model
 from ninja import NinjaAPI
 from ninja.security import django_auth
 
 from api import schemas
 from api.schemas import CategorySchema, ProductSchema
 from inventory.models import Category, Product
+
+User = get_user_model()
 
 api = NinjaAPI()
 
