@@ -47,7 +47,8 @@ DJANGO_APPS = [
 ]
 
 USER_DEFINED_APPS = [
-    "api", 
+    "api",
+    "inventory" 
 ]
 
 EXTERNAL_APPS = [
@@ -93,7 +94,14 @@ WSGI_APPLICATION = "config.wsgi.application"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    'default': db_url(os.getenv('DATABASE_URL'))
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': 'mydatabase.db',  # Database file name
+        'USER': '',  # SQLite doesn't require a user
+        'PASSWORD': '',  # SQLite doesn't require a password
+        'HOST': '',  # SQLite doesn't require a host
+        'PORT': '',  # SQLite doesn't require a port
+    }
 }
 
 
