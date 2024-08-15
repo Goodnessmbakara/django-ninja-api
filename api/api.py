@@ -40,12 +40,14 @@ def get_category_list(request):
     qs = Category.objects.all()
     return qs
  
-@api.get("/inventory/product/category/{category_slug}", response=List[ProductSchema],auth=BasicAuth())
+@api.get("/inventory/product/category/{category_slug}", response=List[schemas.ProductResponseSchema])
 def get_product_by_category(request, category_slug: str):
-    qs = Product.objects.filter(category__slug=category_slug)
-    return qs
+    products = Product.objects.select_related('category').filter(category__slug=category_slug)
+    print(products)
+    return products
 
-@api.put("/inventory/category/{category_id}", response=List[CategorySchema],auth=BasicAuth())
+
+@api.put("/inventory/category/{category_id}",auth=BasicAuth())
 def update_category(request, category_id: int, payload: CategorySchema):
     category = get_object_or_404(Category, id=category_id)
     for attr,value in payload.dict().items():
